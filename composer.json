@@ -1,0 +1,17 @@
+{
+    "name": "keepeye/phpcrawl",
+    "description": "A php crawl",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "cxz",
+            "email": "carlton.cheng@foxmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php" : ">=5.5",
+        "symfony/class-loader": "2.8",
+        "symfony/console": "2.8"
+    }
+}
