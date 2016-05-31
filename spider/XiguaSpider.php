@@ -18,7 +18,7 @@ class XiguaSpider extends Spider
     public $startUrls = ['http://www.ttll.cc/dy/index.html','http://www.ttll.cc/dy/index2.html','http://www.ttll.cc/dy/index3.html'];
 
     /**
-     * 生成初始request对象
+     * 生成列表页url
      *
      * @return \Generator
      */
@@ -29,11 +29,23 @@ class XiguaSpider extends Spider
         }
     }
 
+    /**
+     * 定义item字段,用于数据库表结构
+     * 
+     * @return array
+     */
     public function getFields()
     {
         return ['title','litpic','description'];
     }
 
+    /**
+     * 解析内容页url
+     * 
+     * @param Response $response 列表页响应对象
+     * @return \Generator
+     * @throws \Exception
+     */
     public function parseItemUrls(Response $response)
     {
         \phpQuery::newDocument($response->rawBody);
@@ -42,6 +54,12 @@ class XiguaSpider extends Spider
         }
     }
 
+    /**
+     * 解析内容页
+     *
+     * @param \library\Response $response 内容页响应
+     * @return mixed
+     */
     public function parseItem(Response $response)
     {
         \phpQuery::newDocument($response->rawBody);

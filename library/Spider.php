@@ -15,9 +15,33 @@ use library\db\DB;
 
 abstract class Spider
 {
-    abstract public function startRequests();//初始列表页url
-    abstract public function getFields();//定义item字段
-    abstract public function parseItemUrls(Response $response);//提取内容页url
+    /**
+     * 生成列表页url
+     *
+     * @return \Generator
+     */
+    abstract public function startRequests();
+    /**
+     * 定义内容字段,用于数据库表结构
+     *
+     * @return array
+     */
+    abstract public function getFields();
+    /**
+     * 解析内容页url
+     *
+     * @param Response $response 列表页响应对象
+     * @return \Generator
+     * @throws \Exception
+     */
+    abstract public function parseItemUrls(Response $response);
+
+    /**
+     * 解析内容页
+     *
+     * @param \library\Response $response 内容页响应
+     * @return mixed
+     */
     abstract public function parseItem(Response $response);//解析内容页标签
 
     public $name;//蜘蛛名字,跟配置文件和命令行指定的一致,不要修改
