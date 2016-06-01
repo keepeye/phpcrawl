@@ -30,16 +30,6 @@ class XiguaSpider extends Spider
     }
 
     /**
-     * 定义item字段,用于数据库表结构
-     * 
-     * @return array
-     */
-    public function getFields()
-    {
-        return ['title','litpic','description'];
-    }
-
-    /**
      * 解析内容页url
      * 
      * @param Response $response 列表页响应对象

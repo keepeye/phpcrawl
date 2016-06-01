@@ -104,13 +104,14 @@ class Crawl
         $startRequests = $this->spider->startRequests();
         //STEP1 采集内容页url
         foreach ($startRequests as $request) {
-            $this->spider->crawlItemUrls($request->request($request));
+            $this->spider->crawlItemUrls($request->request());
+            $this->output->writeln("采集网址:".$request->url);
         }
-        $this->output->writeln("列表页采集完毕...开始采集内容页...");
+        $this->output->writeln("网址采集完毕...开始采集内容页...");
         //STEP2 多进程采集内容页
         $this->crawlItems();
         //采集完毕
-        $this->output->writeln("采集完毕,共采集了 {$this->itemCounts} 个内容页,耗时 ".round(microtime(true) - $this->startTime,2)." 秒");
+        $this->output->writeln("内容采集完毕,共采集了 {$this->itemCounts} 个内容页,耗时 ".round(microtime(true) - $this->startTime,2)." 秒");
         exit(0);
     }
 

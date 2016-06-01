@@ -16,17 +16,35 @@ use library\db\DB;
 abstract class Spider
 {
     /**
+     * 蜘蛛名字
+     *
+     * @var string
+     */
+    public $name;
+    /**
+     * 爬虫对象
+     * @var Crawl
+     */
+    protected $crawl;
+    /**
+     * 初始url
+     *
+     * @var array
+     */
+    protected $startUrls = [];
+    /**
+     * 蜘蛛的配置
+     *
+     * @var array
+     */
+    protected $configs;
+
+    /**
      * 生成列表页url
      *
      * @return \Generator
      */
     abstract public function startRequests();
-    /**
-     * 定义内容字段,用于数据库表结构
-     *
-     * @return array
-     */
-    abstract public function getFields();
     /**
      * 解析内容页url
      *
@@ -44,9 +62,12 @@ abstract class Spider
      */
     abstract public function parseItem(Response $response);//解析内容页标签
 
-    public $name;//蜘蛛名字,跟配置文件和命令行指定的一致,不要修改
-    protected $configs;
-
+    /**
+     * Spider constructor.
+     *
+     * @param $name 蜘蛛名字
+     * @param array $configs 配置参数
+     */
     public function __construct($name,$configs=[])
     {
         $this->name = $name;
@@ -59,29 +80,29 @@ abstract class Spider
     //子类可以覆盖该方法做一些额外的初始化工作
     public function initialize(){}
 
-    //初始化数据库
+    /**
+     * 初始化数据库
+     */
     public function initDatabase()
     {
         $dataDir = DATA_DIR.'/'.$this->name;
-        $dns = sprintf("sqlite:%s/items.sqlite",$dataDir);
-        //数据库已存在,不作处理
-        if (!file_exists($dataDir)) {
-            @mkdir($dataDir,0755,true);
+        $dataFile = $dataDir.'/items.sqlite';
+        $dns = sprintf("sqlite:%s",$dataFile);
+        //数据库不存在则创建
+        if (!file_exists($dataFile)) {
+            if (!file_exists($dataDir)) {
+                @mkdir($dataDir,0755,true);
+            }
             DB::connect($dns);
             $sql = <<<EOF
             CREATE TABLE `items` (
                 `id`	INTEGER PRIMARY KEY AUTOINCREMENT,
                 `url`	TEXT NOT NULL DEFAULT '' UNIQUE,
                 `status`	INTEGER DEFAULT '0',
-                ##fields##,
+                `data` TEXT DEFAULT '',
                 `created_at`	TEXT DEFAULT ''
             );
 EOF;
-            $fields = $this->getFields();
-            $fields = array_map(function($name){
-                return "`{$name}` TEXT DEFAULT ''";
-            },$fields);
-            $sql = str_replace("##fields##",implode(",\n",$fields),$sql);
             //创建表
             DB::$instance->exec($sql);
             //创建索引
@@ -90,18 +111,6 @@ EOF;
             DB::connect($dns);
         }
     }
-
-    /**
-     * 爬虫对象
-     * @var Crawl
-     */
-    protected $crawl;
-    /**
-     * 初始url
-     *
-     * @var array
-     */
-    protected $startUrls = [];
 
     /**
      * 设置爬虫对象
@@ -113,13 +122,23 @@ EOF;
         $this->crawl = $crawl;
     }
 
-    //读取配置参数
+    /**
+     * 读取配置
+     *
+     * @param $key
+     * @param string $default
+     * @return mixed|string
+     */
     public function getConfig($key,$default='')
     {
         return isset($this->configs[$key]) ? $this->configs[$key] : $default;
     }
 
-    //分析内容页url并入库
+    /**
+     * 提取内容页url
+     *
+     * @param \library\Response $response\
+     */
     public function crawlItemUrls(Response $response)
     {
         $urls = $this->parseItemUrls($response);
@@ -131,17 +150,28 @@ EOF;
         }
     }
 
-    //获取待采集的item
+    /**
+     * 从数据库中读取待采集的url
+     *
+     * @param $num
+     * @return array
+     */
     public function getBlankItems($num)
     {
         return DB::$instance->query("select * from items where status = 0 limit ?",[$num]);
     }
 
-    //分析内容页内容
+    /**
+     * 采集内容页数据
+     *
+     * @param $id
+     * @param \library\Response $response
+     */
     public function saveItem($id,Response $response)
     {
-        $data = $this->parseItem($response);
+        $items = $this->parseItem($response);
         $data['status'] = '1';
+        $data['data'] = json_encode($items,JSON_UNESCAPED_UNICODE);
         DB::$instance->update('items',$id,$data);
     }
 }
