@@ -1,3 +1,5 @@
 test.php
+.*
+!.gitignore
 vendor
 data/*
